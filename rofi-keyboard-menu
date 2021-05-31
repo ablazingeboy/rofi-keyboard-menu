@@ -25,10 +25,14 @@ texts[colemak]="US - Colemak"
 declare -A icons
 icons[qwerty]="\uf11c"
 icons[colemak]="\uf11c"
+icons[cancel]="\u00d7"
 
 declare -A actions
 actions[qwerty]="setxkbmap us"
 actions[colemak]="setxkbmap us colemak"
+
+# By default, ask for confirmation for actions that are irreversible
+confirmations=()
 
 # By default, no dry run
 dryrun=false
@@ -65,7 +69,7 @@ while true; do
             echo
             echo "Use with Rofi in script mode. For instance, to ask for shutdown or reboot:"
             echo
-            echo "  rofi -show menu -modi \"menu:rofi-power-menu --choices=shutdown/reboot\""
+            echo "  rofi -show menu -modi \"menu:rofi-keyboard-menu --choices=shutdown/reboot\""
             echo
             echo "Available options:"
             echo "  --dry-run          Don't perform the selected action but print it to stderr."
@@ -85,6 +89,11 @@ while true; do
         "--dry-run")
             dryrun=true
             shift 1
+            ;;
+        "--confirm")
+            IFS='/' read -ra confirmations <<< "$2"
+            check_valid "$1" "${confirmations[@]}"
+            shift 2
             ;;
         "--choices")
             IFS='/' read -ra show <<< "$2"
@@ -165,7 +174,7 @@ echo -e "\0markup-rows\x1ftrue"
 
 if [ -z "${selection+x}" ]
 then
-    echo -e "\0prompt\x1fPower menu"
+    echo -e "\0prompt\x1fKeyboard Layouts"
     for entry in "${show[@]}"
     do
         echo -e "${messages[$entry]}\0icon\x1f${icons[$entry]}"
